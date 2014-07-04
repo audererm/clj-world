@@ -37,7 +37,7 @@
              :left (animation u/duration [stand-flip walk-flip])
              :min-distance 10
              :health 10
-             :stamina 0
+             :stamina 5
              :damage 4
              :attack-time 0))))
 

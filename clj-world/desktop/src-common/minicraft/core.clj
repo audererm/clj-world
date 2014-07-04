@@ -29,6 +29,18 @@
       (sound! play-sound :play)))
   (map #(dissoc % :play-sound) entities))
 
+(defn update-stamina 
+  [{:keys [player?] :as entity}]
+  (if player?
+    (let [stamina (:stamina entity)
+          new-stamina (if (key-pressed? :shift-left)
+                        (u/dec-min stamina 0)
+                        (u/inc-max stamina 10))]
+      (if u/running?
+        (assoc entity :stamina new-stamina)
+        (assoc entity :stamina new-stamina)))
+    entity))
+
 (defscreen main-screen
   :on-show
   (fn [screen entities]
@@ -75,10 +87,7 @@
   (fn [screen entities]
     (println (:stamina (u/get-player entities)))
     (case (:id screen)
-      :update-stamina (if (u/running?)
-                        (assoc (u/get-player entities) :stamina (u/dec-min (:stamina (u/get-player entities)) 0))
-                        (assoc (u/get-player entities) 
-                               :stamina (u/inc-max (:stamina (u/get-player entities)) 10)))
+      :update-stamina (map update-stamina entities)
       nil))
   :on-render
   (fn [screen entities]
