@@ -6,8 +6,9 @@
 (def ^:const duration 0.2)
 (def ^:const damping 0.5)
 (def ^:const max-velocity 5)
+(def ^:const max-velocity-run 9)
 (def ^:const max-velocity-npc 3)
-(def ^:const deceleration 0.9)
+(def ^:const deceleration 0.1)
 (def ^:const map-width 50)
 (def ^:const map-height 50)
 (def ^:const background-layer "grass")
@@ -76,20 +77,43 @@
          :right (> (game :x) (* (game :width) (/ 2 3)))
          false)))
 
+(defn running? []
+  (or (key-pressed? :shift-left) (key-pressed? :shift-right)))
+
+(defn inc-max
+  [n max]
+  (if (< n max)
+    (inc n)
+    max))
+
+(defn dec-min
+  [n min]
+  (if (> n min)
+    (dec n)
+    min))
+
 (defn ^:private get-player-velocity
-  [{:keys [x-velocity y-velocity]}]
+  [{:keys [x-velocity y-velocity stamina]}]
   [(cond
      (or (key-pressed? :dpad-left) (touched? :left))
-     (* -1 max-velocity)
+     (if (and (running?) (> stamina 0))
+       (* -1 max-velocity-run)
+       (* -1 max-velocity))
      (or (key-pressed? :dpad-right) (touched? :right))
-     max-velocity
+     (if (and (running?) (> stamina 0))
+       max-velocity-run
+       max-velocity)
      :else
      x-velocity)
    (cond
      (or (key-pressed? :dpad-down) (touched? :down))
-     (* -1 max-velocity)
+     (if (and (running?) (> stamina 0))
+       (* -1 max-velocity-run)
+       (* -1 max-velocity))
      (or (key-pressed? :dpad-up) (touched? :up))
-     max-velocity
+     (if (and (running?) (> stamina 0))
+       max-velocity-run
+       max-velocity)
      :else
      y-velocity)])
 

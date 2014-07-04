@@ -5,6 +5,8 @@
             [play-clj.g2d :refer :all]
             [play-clj.ui :refer :all]))
 
+(declare minicraft main-screen text-screen)
+
 (defn update-screen!
   [screen entities]
   (doseq [{:keys [x y player?]} entities]
@@ -30,6 +32,7 @@
 (defscreen main-screen
   :on-show
   (fn [screen entities]
+    (add-timer! screen :update-stamina 1 1)
     (let [screen (->> (/ 1 u/pixels-per-tile)
                       (orthogonal-tiled-map "level1.tmx")
                       (update! screen :camera (orthographic) :renderer))
@@ -68,9 +71,19 @@
            flatten
            (map #(if-not (:hurt-sound %) (assoc % :hurt-sound hurt-sound-2) %))
            (reduce #(e/randomize-locations screen %1 %2) []))))
+  :on-timer
+  (fn [screen entities]
+    (println (:stamina (u/get-player entities)))
+    (case (:id screen)
+      :update-stamina (if (u/running?)
+                        (assoc (u/get-player entities) :stamina (u/dec-min (:stamina (u/get-player entities)) 0))
+                        (assoc (u/get-player entities) 
+                               :stamina (u/inc-max (:stamina (u/get-player entities)) 10)))
+      nil))
   :on-render
   (fn [screen entities]
     (clear!)
+    (run! text-screen :on-update-health :health (:health (u/get-player entities)))
     (->> entities
          (map (fn [entity]
                 (->> entity
@@ -109,16 +122,10 @@
   :on-show
   (fn [screen entities]
     (update! screen :camera (orthographic) :renderer (stage))
-    (assoc (label "0" (color :white))
-           :id :fps
-           :x 5))
+    (texture "tiles.png" :set-region 40 0 8 8))
   :on-render
   (fn [screen entities]
-    (->> (for [entity entities]
-           (case (:id entity)
-             :fps (doto entity (label! :set-text (str (game :fps))))
-             entity))
-         (render! screen)))
+    (->> (render! screen entities)))
   :on-resize
   (fn [screen entities]
     (height! screen 300)))

@@ -37,6 +37,7 @@
              :left (animation u/duration [stand-flip walk-flip])
              :min-distance 10
              :health 10
+             :stamina 0
              :damage 4
              :attack-time 0))))
 
@@ -54,6 +55,11 @@
   [img]
   (assoc (create nil img)
          :hit? true
+         :draw-time 0))
+
+(defn create-healthbar
+  [img]
+  (assoc (create nil img)
          :draw-time 0))
 
 (defn create-slime
@@ -83,14 +89,14 @@
         x-change (* x-velocity delta-time)
         y-change (* y-velocity delta-time)]
     (if (or (not= 0 x-change) (not= 0 y-change))
-      (assoc entity
+        (assoc entity
              :x-velocity (u/decelerate x-velocity)
              :y-velocity (u/decelerate y-velocity)
              :x-change x-change
              :y-change y-change
              :x (+ x x-change)
              :y (+ y y-change))
-      entity)))
+         entity)))
 
 (defn ^:private animate-direction
   [screen entity]
